@@ -16,6 +16,7 @@ window.onload = function() {
   var completeOne = false;
   var completeTwo = false;
   var completeThree = false;
+  var completeFour = false;
 
   sprite = new Image();
   sprite.src = "img/playerSp.png";
@@ -32,6 +33,13 @@ window.onload = function() {
     completeThree = true;
   };
 
+  closedsprite = new Image();
+  closedsprite.src = "img/playerSp2.png";
+  sprite.onload = function() {
+    closedsprite = changeBrightness(1.2, sprite);
+    completeFour = true;
+  };
+
   finishSprite = new Image();
   finishSprite.src = "img/finSp.png";
   finishSprite.onload = function() {
@@ -42,7 +50,7 @@ window.onload = function() {
 
   var isComplete = () => {
     console.log("isComplete")
-    if(completeOne === true && completeTwo === true)
+    if(completeOne === true && completeTwo === true && completeThree === true && completeFour === true)
        {
          console.log("Runs");
          setTimeout(function(){
@@ -90,11 +98,6 @@ function shuffle(a) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
-}
-
-// sleep for a set amount of milliseconds
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function changeBrightness(factor, sprite) {
@@ -443,6 +446,7 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
   };
   var cellSize = _cellsize;
   var halfCellSize = cellSize / 2;
+  var HP = 5;
 
   this.redrawPlayer = function(_cellsize) {
     console.log("redrawPlayer");
@@ -524,7 +528,6 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
 
   function check(e) {
     console.log("check");
-    var HP = 5;
     var cell = map[cellCoords.x][cellCoords.y];
     moves++;
     switch (e.keyCode) {
@@ -541,10 +544,12 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
         else {
           removeSprite(cellCoords);
           drawRedSprite(cellCoords);
+          setTimeout(() => drawSprite(cellCoords), 100);
           console.log("HP fall triggered");
           HP = HP-1;
           console.log(HP);
         }
+        HPCheck()
         break;
       case 87:
       case 38: // north
@@ -560,9 +565,11 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
           removeSprite(cellCoords);
           drawRedSprite(cellCoords);
           console.log("HP fall triggered");
+          setTimeout(() => drawSprite(cellCoords), 100);
           HP = HP-1;
           console.log(HP);
         }
+        HPCheck()
         break;
       case 68:
       case 39: // east
@@ -577,10 +584,12 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
         else {
           removeSprite(cellCoords);
           drawRedSprite(cellCoords);
+          setTimeout(() => drawSprite(cellCoords), 100);
           console.log("HP fall triggered");
           HP = HP-1;
           console.log(HP);
         }
+        HPCheck()
         break;
       case 83:
       case 40: // south
@@ -595,11 +604,20 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
         else {
           removeSprite(cellCoords);
           drawRedSprite(cellCoords);
+          setTimeout(() => drawSprite(cellCoords), 100);
           console.log("HP fall triggered");
           HP = HP-1;
           console.log(HP);
         }
+        HPCheck()
         break;
+    }
+
+    function HPCheck() {
+      if (HP == 0) {
+        drawRedSprite(cellCoords);
+        displayVictoryMess(0);
+      }
     }
   }
 
