@@ -617,6 +617,7 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
       if (HP == 0) {
         drawRedSprite(cellCoords);
         displayVictoryMess(0);
+        player.unbindKeyDown();
       }
     }
   }
