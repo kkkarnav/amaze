@@ -16,6 +16,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
+    font-family: 'Press Start 2P', cursive;
 }
 
 #mazeContainer {
@@ -25,7 +26,7 @@ body {
     top: $menuHeight;
     opacity: 0;
     display: inline-block;
-    background-color: rgba(0, 0, 0, 0.30);
+    background-color: rgba(10, 10, 100, 1);
     margin: auto;
 
     #mazeCanvas {
