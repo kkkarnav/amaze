@@ -123,10 +123,16 @@ function changeBrightness(factor, sprite) {
   return spriteOutput;
 }
 
-function displayVictoryMess(moves) {
-  console.log("displayVictoryMess");
-  document.getElementById("moves").innerHTML = "You Moved " + moves + " Steps.";
-  toggleVisablity("Message-Container");  
+function displayVictoryMessage(moves) {
+  console.log("displayVictoryMessage");
+  document.getElementById("victory-moves").innerHTML = "You Moved " + moves + " Steps.";
+  toggleVisablity("Victory-Message-Container");  
+}
+
+function displayLoseryMessage(moves) {
+  console.log("displayLoseryMessage");
+  document.getElementById("losery-moves").innerHTML = "after " + moves + " steps.";
+  toggleVisablity("Losery-Message-Container");  
 }
 
 function toggleVisablity(id) {
@@ -429,15 +435,12 @@ function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
 }
 
 
-function Player(maze, c, _cellsize, onComplete, sprite = null) {
+function Player(maze, c, _cellsize, onComplete, sprite) {
   var ctx = c.getContext("2d");
   var drawSprite;
   var moves = 0;
-  drawSprite = drawSpriteCircle;
-  if (sprite != null) {
-    drawSprite = drawSpriteImg;
-  }
-  drawRedSprite = drawRedSpriteImg;
+  drawSprite = drawPlayer;
+
   var player = this;
   var map = maze.map();
   var cellCoords = {
@@ -447,67 +450,37 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
   var cellSize = _cellsize;
   var halfCellSize = cellSize / 2;
   var HP = 5;
+  document.getElementById("health").value = 5;
+
 
   this.redrawPlayer = function(_cellsize) {
     console.log("redrawPlayer");
     cellSize = _cellsize;
-    drawSpriteImg(cellCoords);
+    drawPlayer(cellCoords, "f2d648");
   };
 
-  function drawSpriteCircle(coord) {
-    console.log("drawSpriteCircle");
+  function drawPlayer(coord, playerColour = "f2d648") {
+    console.log("drawPlayer");
+    var offsetLeft = cellSize / 10;
+    var offsetRight = cellSize / 10;
+
+    // an arc which goes from 36 degrees to 324 degrees
     ctx.beginPath();
-    ctx.fillStyle = "yellow";
     ctx.arc(
       (coord.x + 1) * cellSize - halfCellSize,
-      (coord.y + 1) * cellSize - halfCellSize,
+      (coord.y + 1) * cellSize - halfCellSize, 
       halfCellSize - 2,
-      0,
-      2 * Math.PI
-    );
+      0.2 * Math.PI,
+      1.8 * Math.PI);
+    // snacman's mouth
+    ctx.lineTo(
+      (coord.x + 1) * cellSize - halfCellSize,
+      (coord.y + 1) * cellSize - halfCellSize);
+    ctx.closePath();
+    // fill snacman's head with colour
+    ctx.fillStyle = playerColour;
     ctx.fill();
-    if (coord.x === maze.endCoord().x && coord.y === maze.endCoord().y) {
-      onComplete(moves);
-      player.unbindKeyDown();
-    }
-  }
 
-  function drawSpriteImg(coord) {
-    console.log("drawSpriteImg");
-    var offsetLeft = cellSize / 10;
-    var offsetRight = cellSize / 10;
-    ctx.drawImage(
-      sprite,
-      0,
-      0,
-      sprite.width - 1,
-      sprite.height -1,
-      coord.x * cellSize + (offsetLeft/2),
-      coord.y * cellSize + (offsetLeft/2),
-      cellSize - offsetRight,
-      cellSize - offsetRight
-    );
-    if (coord.x === maze.endCoord().x && coord.y === maze.endCoord().y) {
-      onComplete(moves);
-      player.unbindKeyDown();
-    }
-  }
-
-  function drawRedSpriteImg(coord) {
-    console.log("drawRedSpriteImg");
-    var offsetLeft = cellSize / 10;
-    var offsetRight = cellSize / 10;
-    ctx.drawImage(
-      redsprite,
-      0,
-      0,
-      redsprite.width - 1,
-      redsprite.height -1,
-      coord.x * cellSize + (offsetLeft/2),
-      coord.y * cellSize + (offsetLeft/2),
-      cellSize - offsetRight,
-      cellSize - offsetRight
-    );
     if (coord.x === maze.endCoord().x && coord.y === maze.endCoord().y) {
       onComplete(moves);
       player.unbindKeyDown();
@@ -539,15 +512,14 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
             x: cellCoords.x - 1,
             y: cellCoords.y
           };
-          drawSprite(cellCoords);
+          drawSprite(cellCoords, "#f2d648");
         }
         else {
           removeSprite(cellCoords);
-          drawRedSprite(cellCoords);
-          setTimeout(() => drawSprite(cellCoords), 100);
-          console.log("HP fall triggered");
+          drawSprite(cellCoords, "red");
+          setTimeout(() => drawSprite(cellCoords, "#f2d648"), 100);
           HP = HP-1;
-          console.log(HP);
+          document.getElementById("health").value -= 1;
         }
         HPCheck()
         break;
@@ -559,15 +531,14 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
             x: cellCoords.x,
             y: cellCoords.y - 1
           };
-          drawSprite(cellCoords);
+          drawSprite(cellCoords, "#f2d648");
         }
         else {
           removeSprite(cellCoords);
-          drawRedSprite(cellCoords);
+          drawSprite(cellCoords, "red");
           console.log("HP fall triggered");
-          setTimeout(() => drawSprite(cellCoords), 100);
           HP = HP-1;
-          console.log(HP);
+          document.getElementById("health").value -= 1;
         }
         HPCheck()
         break;
@@ -579,15 +550,14 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
             x: cellCoords.x + 1,
             y: cellCoords.y
           };
-          drawSprite(cellCoords);
+          drawSprite(cellCoords, "#f2d648");
         }
         else {
           removeSprite(cellCoords);
-          drawRedSprite(cellCoords);
-          setTimeout(() => drawSprite(cellCoords), 100);
-          console.log("HP fall triggered");
+          drawSprite(cellCoords, "red");
+          setTimeout(() => drawSprite(cellCoords, "#f2d648"), 100);
           HP = HP-1;
-          console.log(HP);
+          document.getElementById("health").value -= 1;
         }
         HPCheck()
         break;
@@ -599,15 +569,14 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
             x: cellCoords.x,
             y: cellCoords.y + 1
           };
-          drawSprite(cellCoords);
+          drawSprite(cellCoords, "#f2d648");
         }
         else {
           removeSprite(cellCoords);
-          drawRedSprite(cellCoords);
-          setTimeout(() => drawSprite(cellCoords), 100);
-          console.log("HP fall triggered");
+          drawSprite(cellCoords, "red");
+          setTimeout(() => drawSprite(cellCoords, "#f2d648"), 100);
           HP = HP-1;
-          console.log(HP);
+          document.getElementById("health").value -= 1;
         }
         HPCheck()
         break;
@@ -615,8 +584,8 @@ function Player(maze, c, _cellsize, onComplete, sprite = null) {
 
     function HPCheck() {
       if (HP == 0) {
-        drawRedSprite(cellCoords);
-        displayVictoryMess(0);
+        drawPlayer(cellCoords, "red");
+        displayLoseryMessage(moves);
         player.unbindKeyDown();
       }
     }
@@ -687,7 +656,7 @@ function initialize() {
   cellSize = mazeCanvas.width / difficulty;
   maze = new CreateMaze(difficulty, difficulty);
   draw = new DrawMaze(maze, ctx, cellSize, finishSprite);
-  player = new Player(maze, mazeCanvas, cellSize, displayVictoryMess, sprite);
+  player = new Player(maze, mazeCanvas, cellSize, displayVictoryMessage, sprite);
   if (document.getElementById("mazeContainer").style.opacity < "100") {
     document.getElementById("mazeContainer").style.opacity = "100";
   }

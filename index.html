@@ -14,12 +14,20 @@
   <body>
     <div id="gradient"></div>
     <div id="page">
-      <div id="Message-Container">
+      <div id="Victory-Message-Container">
         <div id="message">
-          <h1>Congratulations!</h1>
-          <p>You are done.</p>
-          <p id="moves"></p>
-          <input id="okBtn" type="button" onclick="toggleVisablity('Message-Container')" value="Cool!" />
+          <h1>Victory!</h1>
+          <p>You've beaten the maze!</p>
+          <p id="victory-moves"></p>
+          <input id="okBtn" type="button" onclick="toggleVisablity('Victory-Message-Container')" value="Cool!" />
+        </div>
+      </div>
+      <div id="Losery-Message-Container">
+        <div id="message">
+          <h1>Ahhhh!</h1>
+          <p>The sweet release of death,</p>
+          <p id="losery-moves"></p>
+          <input id="okBtn" type="button" onclick="toggleVisablity('Losery-Message-Container')" value="Cool!" />
         </div>
       </div>
 
@@ -34,11 +42,15 @@
         </div>
 
         <input id="startMazeBtn" type="button" onclick="initialize()" value="Start" />
+
+        <progress id="health" value="5" max="5" style="margin-left: 10px; background-color: black; display: inline;"></progress>
       </div>
 
       <div id="view">
         <div id="mazeContainer">
-          <canvas id="mazeCanvas" class="border" height="900" width="900"></canvas>
+          <canvas id="mazeCanvas" class="border" height="900" width="900">
+          	<div class="snacman"></div>
+          </canvas>
         </div>
       </div>
 
