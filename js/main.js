@@ -1,15 +1,16 @@
 window.onload = function() {
   console.log("onload")
-  let viewWidth = $("#view").width();
+  let viewWidth = $("#view").width() - ($("#view").width()/4);
   console.log(viewWidth);
-  let viewHeight = $("#view").height();
+  let viewHeight = $("#view").height() - ($("#view").height()/4);
   console.log(viewHeight);
+
   if (viewHeight < viewWidth) {
-    ctx.canvas.width = viewHeight - viewHeight / 8;
-    ctx.canvas.height = viewHeight - viewHeight / 8;
+    ctx.canvas.width = viewHeight - (viewHeight / 100);
+    ctx.canvas.height = viewHeight - (viewHeight / 100);
   } else {
-    ctx.canvas.width = viewWidth - viewWidth / 8;
-    ctx.canvas.height = viewWidth - viewWidth / 8;
+    ctx.canvas.width = viewWidth - viewWidth / 100;
+    ctx.canvas.height = viewWidth - viewWidth / 100;
   }
 
   //Load and edit sprites
