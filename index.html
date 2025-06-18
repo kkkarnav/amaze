@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 	
 	<head>
@@ -5,48 +6,48 @@
 			<meta charset="utf-8">
 			<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
 			<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-			<meta name="theme-color" content="#ffffff"/>
-			<meta property="og:title" content="Karnav Popat | Student → Tech Support">
+			<meta name="theme-color" content="#000000"/>
+			<meta property="og:title" content="Snackman">
 
 			<link rel="stylesheet" href="css/style.css">
 			<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"> 
-
   	</head>
 
 	<body>
-		<div id="gradient"></div>
 		<div id="page">
 	  		<div id="Victory-Message-Container">
 				<div id="message">
 			  		<h1>Victory!</h1>
-			  		<p>You've beaten the maze!</p>
 			  		<p id="victory-moves"></p>
-			  		<input id="okBtn" type="button" onclick="toggleVisablity('Victory-Message-Container')" value="Cool!" />
+			  		<input id="okBtn" type="button" onclick="toggleVisibility('Victory-Message-Container')" value="Celebrate!" />
 				</div>
 			</div>
-		  	<div id="Losery-Message-Container">
+		  	<div id="Loss-Message-Container">
 				<div id="message">
-				  	<h1>Ahhhh!</h1>
-				  	<p>The sweet release of death,</p>
-				  	<p id="losery-moves"></p>
-				  	<input id="okBtn" type="button" onclick="toggleVisablity('Losery-Message-Container')" value="Cool!" />
+				  	<h1>You lost!</h1>
+				  	<p>Sorry :(</p>
+				  	<p id="loss-moves"></p>
+				  	<input id="okBtn" type="button" onclick="toggleVisibility('Loss-Message-Container')" value="Restart" />
 				</div>
 		  	</div>
 
 		  	<div id="menu">
 				<div class="custom-select">
-			  		<select id="diffSelect">
-						<option value="10">Easy</option>
-						<option value="15">Medium</option>
-						<option value="25">Hard</option>
-						<option value="38">Extreme</option>
-			  		</select>
+				  	<select id="diffSelect" class="easy">
+						<option value="10" class="easy">Easy</option>
+						<option value="15" class="medium">Medium</option>
+						<option value="25" class="hard">Hard</option>
+						<option value="38" class="extreme">Extreme</option>
+				  	</select>
 				</div>
-
+			  
 				<input id="startMazeBtn" type="button" onclick="initialize()" value="Start" />
-
-				<progress id="health" value="5" max="5"></progress>
-		  	</div>
+			  
+				<div id="health-container">
+					<span id="health-label">HP:</span>
+					<progress id="health" value="5" max="5"></progress>
+				</div>
+			</div>
 
 		  	<div id="view">
 				<div id="mazeContainer">

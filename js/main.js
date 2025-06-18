@@ -1,48 +1,25 @@
-window.onload = function() {
-  console.log("onload")
-  let viewWidth = $("#view").width() - ($("#view").width()/4);
-  console.log(viewWidth);
-  let viewHeight = $("#view").height() - ($("#view").height()/4);
-  console.log(viewHeight);
 
-  if (viewHeight < viewWidth) {
-    ctx.canvas.width = viewHeight - (viewHeight / 100);
-    ctx.canvas.height = viewHeight - (viewHeight / 100);
-  } else {
-    ctx.canvas.width = viewWidth - viewWidth / 100;
-    ctx.canvas.height = viewWidth - viewWidth / 100;
-  }
+window.onload = function() {
+
+  let availableHeight = $("#view").height();
+  let availableWidth = $("#view").width();
+
+  let canvasSize = Math.min(availableHeight, availableWidth) * 0.80;
+  ctx.canvas.width = canvasSize;
+  ctx.canvas.height = canvasSize;
 
   //Load and edit sprites
   var completeOne = false;
   var completeTwo = false;
-  var completeThree = false;
-  var completeFour = false;
 
   sprite = new Image();
-  sprite.src = "img/playerSp.png";
   sprite.onload = function() {
     sprite = changeBrightness(1.2, sprite);
     completeOne = true;
     isComplete();
   };
 
-  redsprite = new Image();
-  redsprite.src = "img/playerSpHurt.png";
-  sprite.onload = function() {
-    redsprite = changeBrightness(1.2, sprite);
-    completeThree = true;
-  };
-
-  closedsprite = new Image();
-  closedsprite.src = "img/playerSp2.png";
-  sprite.onload = function() {
-    closedsprite = changeBrightness(1.2, sprite);
-    completeFour = true;
-  };
-
   finishSprite = new Image();
-  finishSprite.src = "img/finSp.png";
   finishSprite.onload = function() {
     finishSprite = changeBrightness(1.1, finishSprite);
     completeTwo = true;
@@ -50,10 +27,8 @@ window.onload = function() {
   };
 
   var isComplete = () => {
-    console.log("isComplete")
-    if(completeOne === true && completeTwo === true && completeThree === true && completeFour === true)
+    if(completeOne === true && completeTwo === true)
        {
-         console.log("Runs");
          setTimeout(function(){
            initialize();
          }, 500);         
@@ -62,29 +37,42 @@ window.onload = function() {
   
 };
 
+document.getElementById('diffSelect').addEventListener('change', function() {
+    this.classList.remove('easy', 'medium', 'hard', 'extreme');
+    
+    const selectedOption = this.options[this.selectedIndex];
+    this.classList.add(selectedOption.className);
+    
+    this.style.color = this.value === "15" || this.value === "10" ? "#000" : "#fff";
+});
+
+document.getElementById('diffSelect').dispatchEvent(new Event('change'));
+
 var mazeCanvas = document.getElementById("mazeCanvas");
 var ctx = mazeCanvas.getContext("2d");
+
+var virtualCanvas = document.createElement("canvas");
+virtualCanvas.width = 100;
+virtualCanvas.height = 100;
+
 var sprite;
 var finishSprite;
+var spriteOutput = new Image();
 var maze, draw, player;
 var cellSize;
 var difficulty;
-// sprite.src = 'media/sprite.png';
 
 window.onresize = function() {
-  console.log("onresize")
-  let viewWidth = $("#view").width();
-  let viewHeight = $("#view").height();
-  if (viewHeight < viewWidth) {
-    ctx.canvas.width = viewHeight - viewHeight / 100;
-    ctx.canvas.height = viewHeight - viewHeight / 100;
-  } else {
-    ctx.canvas.width = viewWidth - viewWidth / 100;
-    ctx.canvas.height = viewWidth - viewWidth / 100;
-  }
+  let availableHeight = $("#view").height();
+  let availableWidth = $("#view").width();
+  
+  let canvasSize = Math.min(availableHeight, availableWidth) * 0.80;
+  ctx.canvas.width = canvasSize;
+  ctx.canvas.height = canvasSize;
+  
   cellSize = mazeCanvas.width / difficulty;
-  if (player != null) { // TODO check if remove condition 
-    draw.redrawMaze(cellSize); // to eliminate init load problem
+  if (player != null) {
+    draw.redrawMaze(cellSize);
     player.redrawPlayer(cellSize);
   }
 };
@@ -102,11 +90,8 @@ function shuffle(a) {
 }
 
 function changeBrightness(factor, sprite) {
-  console.log("changeBrightness");
-  var virtCanvas = document.createElement("canvas");
-  virtCanvas.width = 500;
-  virtCanvas.height = 500;
-  var context = virtCanvas.getContext("2d");
+  var context = virtualCanvas.getContext("2d");
+  context.clearRect(0, 0, virtualCanvas.width, virtualCanvas.height);
   context.drawImage(sprite, 0, 0, 500, 500);
 
   var imgData = context.getImageData(0, 0, 500, 500);
@@ -118,26 +103,46 @@ function changeBrightness(factor, sprite) {
   }
   context.putImageData(imgData, 0, 0);
 
-  var spriteOutput = new Image();
-  spriteOutput.src = virtCanvas.toDataURL();
-  virtCanvas.remove();
+  spriteOutput.src = virtualCanvas.toDataURL();
   return spriteOutput;
 }
 
 function displayVictoryMessage(moves) {
-  console.log("displayVictoryMessage");
-  document.getElementById("victory-moves").innerHTML = "You Moved " + moves + " Steps.";
-  toggleVisablity("Victory-Message-Container");  
+  document.getElementById("victory-moves").innerHTML = "You won after " + moves + " steps.";
+  toggleVisibility("Victory-Message-Container");  
 }
 
-function displayLoseryMessage(moves) {
-  console.log("displayLoseryMessage");
-  document.getElementById("losery-moves").innerHTML = "after " + moves + " steps.";
-  toggleVisablity("Losery-Message-Container");  
+function displayLossMessage(moves) {
+  document.getElementById("loss-moves").innerHTML = "You moved " + moves + " steps before death.";
+  toggleVisibility("Loss-Message-Container");  
 }
 
-function toggleVisablity(id) {
-  console.log("toggleVisablity");
+function displayVictoryMessage(moves) {
+  const optimalSteps = findOptimalPath(maze, maze.startCoord(), maze.endCoord());
+  const efficiency = optimalSteps > 0 ? Math.round((optimalSteps / moves) * 100) : 0;
+  
+  document.getElementById("victory-moves").innerHTML = `
+    You won after ${moves} steps.<br>
+    The computer would've won in ${optimalSteps} steps (efficiency: ${efficiency}%).<br>
+    ${moves <= optimalSteps ? "Great job!" : ""}
+  `;
+  
+  toggleVisibility("Victory-Message-Container");  
+}
+
+function displayLossMessage(moves) {
+  const optimalSteps = findOptimalPath(maze, maze.startCoord(), maze.endCoord());
+  
+  document.getElementById("loss-moves").innerHTML = `
+    You took ${moves} steps<br>
+    Optimal path was ${optimalSteps} steps<br>
+    ${optimalSteps > 0 ? "Can you find the shorter path?" : "Maze was impossible!"}
+  `;
+  
+  toggleVisibility("Loss-Message-Container");
+}
+
+function toggleVisibility(id) {
   if (document.getElementById(id).style.visibility == "visible") {
     document.getElementById(id).style.visibility = "hidden";
   } else {
@@ -146,33 +151,16 @@ function toggleVisablity(id) {
 }
 
 function CreateMaze(Width, Height) {
-  console.log("CreateMaze");
   var mazeMap;
   var width = Width;
   var height = Height;
   var startCoord, endCoord;
-  var dirs = ["n", "s", "e", "w"];
+  var dirs = ["north", "south", "east", "west"];
   var modDir = {
-    n: {
-      y: -1,
-      x: 0,
-      o: "s"
-    },
-    s: {
-      y: 1,
-      x: 0,
-      o: "n"
-    },
-    e: {
-      y: 0,
-      x: 1,
-      o: "w"
-    },
-    w: {
-      y: 0,
-      x: -1,
-      o: "e"
-    }
+    north: { y: -1, x: 0, o: "south" },
+    south: { y: 1, x: 0, o: "north" },
+    east: { y: 0, x: 1, o: "west" },
+    west: { y: 0, x: -1, o: "east" }
   };
 
   this.map = function() {
@@ -186,16 +174,15 @@ function CreateMaze(Width, Height) {
   };
 
   function genMap() {
-    console.log("genMap");
     mazeMap = new Array(height);
     for (y = 0; y < height; y++) {
       mazeMap[y] = new Array(width);
       for (x = 0; x < width; ++x) {
         mazeMap[y][x] = {
-          n: false,
-          s: false,
-          e: false,
-          w: false,
+          north: false,
+          south: false,
+          east: false,
+          west: false,
           visited: false,
           priorPos: null
         };
@@ -204,7 +191,6 @@ function CreateMaze(Width, Height) {
   }
 
   function defineStartEnd() {
-    console.log("defineStartEnd");
     switch (rand(4)) {
       case 0:
         startCoord = {
@@ -250,7 +236,6 @@ function CreateMaze(Width, Height) {
   }
 
   function defineMaze() {
-    console.log("defineMaze");
     var isComp = false;
     var move = false;
     var cellsVisited = 1;
@@ -317,14 +302,12 @@ function CreateMaze(Width, Height) {
 
 
 function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
-  console.log("DrawMaze");
   var map = Maze.map();
   var cellSize = cellsize;
   var drawEndMethod;
   ctx.lineWidth = cellSize / 40;
 
   this.redrawMaze = function(size) {
-    console.log("redrawMaze");
     cellSize = size;
     ctx.lineWidth = cellSize / 40;
     drawMap();
@@ -332,30 +315,29 @@ function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
   };
 
   function drawCell(xCord, yCord, cell) {
-    console.log("drawCell");
     var x = xCord * cellSize;
     var y = yCord * cellSize;
     ctx.strokeStyle = "white";
 
-    if (cell.n == false) {
+    if (cell.north == false) {
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x + cellSize, y);
       ctx.stroke();
     }
-    if (cell.s === false) {
+    if (cell.south === false) {
       ctx.beginPath();
       ctx.moveTo(x, y + cellSize);
       ctx.lineTo(x + cellSize, y + cellSize);
       ctx.stroke();
     }
-    if (cell.e === false) {
+    if (cell.east === false) {
       ctx.beginPath();
       ctx.moveTo(x + cellSize, y);
       ctx.lineTo(x + cellSize, y + cellSize);
       ctx.stroke();
     }
-    if (cell.w === false) {
+    if (cell.west === false) {
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x, y + cellSize);
@@ -364,7 +346,6 @@ function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
   }
 
   function drawMap() {
-    console.log("drawMap");
     for (x = 0; x < map.length; x++) {
       for (y = 0; y < map[x].length; y++) {
         drawCell(x, y, map[x][y]);
@@ -373,7 +354,6 @@ function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
   }
 
   function drawEndFlag() {
-    console.log("drawEndFlag");
     var coord = Maze.endCoord();
     var gridSize = 4;
     var fraction = cellSize / gridSize - 2;
@@ -402,7 +382,6 @@ function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
   }
 
   function drawEndSprite() {
-    console.log("drawEndSprite");
     var offsetLeft = cellSize / 50;
     var offsetRight = cellSize / 25;
     var coord = Maze.endCoord();
@@ -420,12 +399,11 @@ function DrawMaze(Maze, ctx, cellsize, endSprite = null) {
   }
 
   function clear() {
-    console.log("clear");
     var canvasSize = cellSize * map.length;
     ctx.clearRect(0, 0, canvasSize, canvasSize);
   }
 
-  if (endSprite = null) {
+  if (endSprite == null) {
     drawEndMethod = drawEndSprite;
   } else {
     drawEndMethod = drawEndFlag;
@@ -455,13 +433,11 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
 
 
   this.redrawPlayer = function(_cellsize) {
-    console.log("redrawPlayer");
     cellSize = _cellsize;
     drawPlayer(cellCoords, "f2d648");
   };
 
   function drawPlayer(coord, playerColour = "f2d648") {
-    console.log("drawPlayer");
     var offsetLeft = cellSize / 10;
     var offsetRight = cellSize / 10;
 
@@ -489,7 +465,6 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
   }
 
   function removeSprite(coord) {
-    console.log("removeSprite");
     var offsetLeft = cellSize / 20;
     var offsetRight = cellSize / 20;
     ctx.clearRect(
@@ -501,13 +476,12 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
   }
 
   function check(e) {
-    console.log("check");
     var cell = map[cellCoords.x][cellCoords.y];
     moves++;
     switch (e.keyCode) {
       case 65:
       case 37: // west
-        if (cell.w == true) {
+        if (cell.west == true) {
           removeSprite(cellCoords);
           cellCoords = {
             x: cellCoords.x - 1,
@@ -526,7 +500,7 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
         break;
       case 87:
       case 38: // north
-        if (cell.n == true) {
+        if (cell.north == true) {
           removeSprite(cellCoords);
           cellCoords = {
             x: cellCoords.x,
@@ -537,7 +511,7 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
         else {
           removeSprite(cellCoords);
           drawSprite(cellCoords, "red");
-          console.log("HP fall triggered");
+          setTimeout(() => drawSprite(cellCoords, "#f2d648"), 100);
           HP = HP-1;
           document.getElementById("health").value -= 1;
         }
@@ -545,7 +519,7 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
         break;
       case 68:
       case 39: // east
-        if (cell.e == true) {
+        if (cell.east == true) {
           removeSprite(cellCoords);
           cellCoords = {
             x: cellCoords.x + 1,
@@ -564,7 +538,7 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
         break;
       case 83:
       case 40: // south
-        if (cell.s == true) {
+        if (cell.south == true) {
           removeSprite(cellCoords);
           cellCoords = {
             x: cellCoords.x,
@@ -586,14 +560,13 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
     function HPCheck() {
       if (HP == 0) {
         drawPlayer(cellCoords, "red");
-        displayLoseryMessage(moves);
+        displayLossMessage(moves);
         player.unbindKeyDown();
       }
     }
   }
 
   this.bindKeyDown = function() {
-    console.log("bindKeyDown");
     window.addEventListener("keydown", check, false);
 
     $("#view").swipe({
@@ -605,7 +578,6 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
         fingerCount,
         fingerData
       ) {
-        console.log(direction);
         switch (direction) {
           case "up":
             check({
@@ -634,7 +606,6 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
   };
 
   this.unbindKeyDown = function() {
-    console.log("unbindKeyDown");
     window.removeEventListener("keydown", check, false);
     $("#view").swipe("destroy");
   };
@@ -646,7 +617,6 @@ function Player(maze, c, _cellsize, onComplete, sprite) {
 
 
 function initialize() {
-  console.log("initialize");
   //document.getElementById("mazeCanvas").classList.add("border");
   if (player != undefined) {
     player.unbindKeyDown();
@@ -661,4 +631,93 @@ function initialize() {
   if (document.getElementById("mazeContainer").style.opacity < "100") {
     document.getElementById("mazeContainer").style.opacity = "100";
   }
+}
+
+function findOptimalPath(maze, start, end) {
+  const grid = maze.map();
+  const startNode = { x: start.x, y: start.y, g: 0, h: 0, f: 0, parent: null };
+  const endNode = { x: end.x, y: end.y };
+  
+  const openSet = [startNode];
+  const closedSet = [];
+  const directions = [
+    { x: 0, y: -1, dir: "north" },  // North
+    { x: 1, y: 0, dir: "east" },    // East
+    { x: 0, y: 1, dir: "south" },   // South
+    { x: -1, y: 0, dir: "west" }    // West
+  ];
+
+  while (openSet.length > 0) {
+    // Get node with lowest f cost
+    openSet.sort((a, b) => a.f - b.f);
+    const currentNode = openSet.shift();
+
+    // Check if we've reached the end
+    if (currentNode.x === endNode.x && currentNode.y === endNode.y) {
+      return reconstructPath(currentNode).length - 1; // Return number of steps
+    }
+
+    closedSet.push(currentNode);
+
+    // Check neighbors
+    for (const dir of directions) {
+      const neighborX = currentNode.x + dir.x;
+      const neighborY = currentNode.y + dir.y;
+
+      // Skip if out of bounds
+      if (neighborX < 0 || neighborX >= grid.length || 
+          neighborY < 0 || neighborY >= grid[0].length) {
+        continue;
+      }
+
+      // Skip if wall exists (unless it's the end node)
+      if (!(neighborX === endNode.x && neighborY === endNode.y) && 
+          !grid[currentNode.x][currentNode.y][dir.dir]) {
+        continue;
+      }
+
+      // Skip if already evaluated
+      if (closedSet.some(node => node.x === neighborX && node.y === neighborY)) {
+        continue;
+      }
+
+      // Calculate scores
+      const gScore = currentNode.g + 1;
+      const hScore = heuristic(neighborX, neighborY, endNode.x, endNode.y);
+      const fScore = gScore + hScore;
+
+      // Check if this path is better
+      const existingNode = openSet.find(n => n.x === neighborX && n.y === neighborY);
+      if (!existingNode || gScore < existingNode.g) {
+        const neighbor = {
+          x: neighborX,
+          y: neighborY,
+          g: gScore,
+          h: hScore,
+          f: fScore,
+          parent: currentNode
+        };
+        
+        if (!existingNode) {
+          openSet.push(neighbor);
+        }
+      }
+    }
+  }
+
+  return -1;
+}
+
+function heuristic(x1, y1, x2, y2) {
+  return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+function reconstructPath(node) {
+  const path = [];
+  let current = node;
+  while (current) {
+    path.unshift({ x: current.x, y: current.y });
+    current = current.parent;
+  }
+  return path;
 }
